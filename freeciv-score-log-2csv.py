@@ -22,6 +22,8 @@
 import os
 from argparse import ArgumentParser
 
+last_turn = 0
+
 def run_forest(filename):
     line_number = 0
 
@@ -45,7 +47,8 @@ def run_forest(filename):
             line_number += 1
             if line[0] in ['\n', "#"]:
                 continue
-        
+
+            last_turn += 1
             line = line.strip()
             command, args = str.split(line, maxsplit = 1)
 
@@ -95,8 +98,6 @@ def run_forest(filename):
                 if turn not in FCdata[tid]:
                     FCdata[tid][turn] = {}
                 FCdata[tid][turn][pid] = value
-
-    lastturn = line_number
     
     for tid in FCtags.keys():
 
