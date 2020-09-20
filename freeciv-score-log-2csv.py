@@ -22,9 +22,9 @@
 import os
 from argparse import ArgumentParser
 
-last_turn = 0
 
 def run_forest(filename):
+    last_turn = 0
     line_number = 0
 
     FCid = ""
@@ -118,7 +118,7 @@ def run_forest(filename):
             out.write("\n")
 
             # Data
-            for turn in range(firstturn, lastturn):
+            for turn in range(firstturn, last_turn):
                 if turn in FCdata[tid]:
                     out.write("%d," % turn)
                     for pid in FCplayers.keys():
