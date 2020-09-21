@@ -20,8 +20,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
     #fill Nan as 0
     data.fillna(0, inplace=True)
     
-    #array kicked
-    dt = data.T
 
     if playerlist != "all":
         player_list = playerlist.split(':')
@@ -45,21 +43,24 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         
     if yname != "":
         filename = yname
+        
+    if playerlist != "all":
+        data = data[player_list]
+    if excludelist != "none":
+        for i in exclude_list:
+            data = data.loc[:, ~data.columns.str.contains(i)]
+    if xlim != "nolimits":
+        data = data[int(xmin):int(xmax)]
      
+    #array kicked
+    dt = data.T
+    
     if plottype == 'percentage':
-        if playerlist != "all":
-            dt = limit_to_players(dt, player_list)
-            
-        if excludelist != "none":
-            dt = dt.drop(exclude_list)
+
         rows = dt
         rows = (100. * rows / rows.sum()).round(2)
-        
         rows = rows.T
-        
-        if xlim != "nolimits":
-            rows = rows[int(xmin):int(xmax)]
-            
+                    
         z = rows.plot.area(xlabel="turn", ylabel=filename)
         
         if ylim != "nolimits":
@@ -70,29 +71,23 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
             
     if plottype == 'simple':
         
-        if playerlist != "all":
-            data = data[player_list]
-        
-        if excludelist != "none":
-            for i in exclude_list:
-                data = data.loc[:, ~data.columns.str.contains(i)]
-#kind='bar'
-        if xlim != "nolimits":
-            data = data[int(xmin):int(xmax)]
         z = data.plot(xlabel="turn", ylabel=filename)
-        #z = data.plot()
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
-    
+    if plottype == 'stackedbar':
+        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename)
+        if ylim != "nolimits":
+            z.set_ylim(int(ymin), int(ymax))
+        plt.show()
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Plot csv files')
     parser.add_argument('filename',nargs='?', default='',
                          help='csv file to read (default: %(default)s)')
     parser.add_argument('-type', type=str, metavar='plot type',nargs='?', default="simple",
-                          help='supported types: simple(default), percentage')
+                          help='supported types: simple(default), percentage, stackedbar')
     parser.add_argument('-playerlist', type=str, metavar='players only',nargs='?', default="all",
                           help='include only given players - seperated by colon, eg aa:bb:cc (default: %(default)s)')
     parser.add_argument('-excludelist', type=str, metavar='exclude players',nargs='?', default="none",
