@@ -43,7 +43,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         x = xlim.split(':')
         xmin = x[0]
         xmax = x[1]
-        print(f"X axis min set to {ymin}, max to {ymax}")
+        print(f"X axis min set to {xmin}, max to {xmax}")
         
     if yname != "":
         filename = yname
@@ -83,17 +83,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         if xlim != "nolimits":
             z.set_xlim(xmin, xmax)
         plt.show()
-    #jakiś błąd z landarea
-    
-    #plt.style.use('ggplot')
-    #data.plot(kind='bar')
 
-    #rows = dt.reindex(["louis94","aaa","bbb","ccc"])
-    #print(rows)
-    #rows.T.plot(kind='bar',xlabel="turn", ylabel="score")
-    #rows.T.plot.hexbin(xlabel="turn", ylabel="score")
-    #data.plot()
-    #df.plot(xlabel="new x", ylabel="new y")
     
 
 if __name__ == '__main__':
