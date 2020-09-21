@@ -77,7 +77,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         plt.show()
 
     if plottype == 'stackedbar':
-        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
+        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename, logx=log_x, logy = log_y, width = 1.0)
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
