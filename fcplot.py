@@ -10,7 +10,7 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
     
-def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
+def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname):
     
     data = read_file(filename)
 
@@ -61,7 +61,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         rows = (100. * rows / rows.sum()).round(2)
         rows = rows.T
                     
-        z = rows.plot.area(xlabel="turn", ylabel=filename)
+        z = rows.plot.area(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
         
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
@@ -71,13 +71,13 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
             
     if plottype == 'simple':
         
-        z = data.plot(xlabel="turn", ylabel=filename)
+        z = data.plot(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
     if plottype == 'stackedbar':
-        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename)
+        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
@@ -97,8 +97,10 @@ if __name__ == '__main__':
     parser.add_argument('-ylim', type=str, metavar='ylim',nargs='?', default="nolimits",
                           help='min:max of y axis eg 0:100 (default: %(default)s)')
     parser.add_argument('-yname', type=str, metavar='ylegend',nargs='?', default="",
-                          help='name of Y axis (default: filename')
+                          help='name of Y axis (default: filename)')
+    parser.add_argument('-logx', help='sets logarythmic X axis', action="store_true")
+    parser.add_argument('-logy', help='sets logarythmic Y axis', action="store_true")
     args = parser.parse_args()
-    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.yname)
+    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname)
     
     
