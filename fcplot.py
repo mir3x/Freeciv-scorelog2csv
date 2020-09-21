@@ -84,17 +84,16 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Plot csv files')
-    parser.add_argument('filename',nargs='?', default='',
-                         help='csv file to read (default: %(default)s)')
-    parser.add_argument('-type', type=str, metavar='plot type',nargs='?', default="simple",
+    parser.add_argument('filename',nargs='?', default='', help='csv file to read')
+    parser.add_argument('-type', type=str, metavar='plot_type',nargs='?', default="simple",
                           help='supported types: simple(default), percentage, stackedbar')
-    parser.add_argument('-playerlist', type=str, metavar='players only',nargs='?', default="all",
+    parser.add_argument('-playerlist', type=str, metavar='list of players',nargs='?', default="all",
                           help='include only given players - seperated by colon, eg aa:bb:cc (default: %(default)s)')
-    parser.add_argument('-excludelist', type=str, metavar='exclude players',nargs='?', default="none",
+    parser.add_argument('-excludelist', type=str, metavar='list of excluded players',nargs='?', default="none",
                           help='exclude given players - seperated by colon, eg aa:bb:cc (default: %(default)s)')
-    parser.add_argument('-xlim', type=str, metavar='xlim',nargs='?', default="nolimits",
+    parser.add_argument('-xlim', type=str, metavar='min:max',nargs='?', default="nolimits",
                           help='min:max of x axis eg 0:100 (default: %(default)s)')
-    parser.add_argument('-ylim', type=str, metavar='ylim',nargs='?', default="nolimits",
+    parser.add_argument('-ylim', type=str, metavar='min:max',nargs='?', default="nolimits",
                           help='min:max of y axis eg 0:100 (default: %(default)s)')
     parser.add_argument('-yname', type=str, metavar='ylegend',nargs='?', default="",
                           help='name of Y axis (default: filename)')
