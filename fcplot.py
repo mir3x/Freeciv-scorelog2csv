@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from matplotlib.font_manager import FontProperties
 from argparse import ArgumentParser
 
 
