@@ -23,7 +23,7 @@ import os
 from argparse import ArgumentParser
 
 
-def run_forest(filename):
+def run_forest(filename, outdir):
     last_turn = 0
     line_number = 0
 
@@ -106,6 +106,9 @@ def run_forest(filename):
 
         filename = FCtags[tid] + ".csv"
         
+        if outdir != "":
+            FCid = outdir
+        
         if not os.path.exists(FCid):
             os.makedirs(FCid)
             
@@ -136,5 +139,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Freeciv Scorelog 2 csv')
     parser.add_argument('filename',nargs='?', default='freeciv-score.log',
                          help='freeciv scorelog filename (default: %(default)s)')
+    parser.add_argument('-dir', type=str, metavar='output_direcotry',nargs='?', default="",
+                         help='Output directory for csv (default: id given in freeciv-score.log')
     args = parser.parse_args()
-    run_forest(args.filename)
+    run_forest(args.filename, args.dir)
