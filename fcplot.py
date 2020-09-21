@@ -23,7 +23,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
     #array kicked
     dt = data.T
 
-    
     if playerlist != "all":
         player_list = playerlist.split(':')
         print("Included players:", player_list)
@@ -56,13 +55,12 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         rows = dt
         rows = (100. * rows / rows.sum()).round(2)
         
+        rows = rows.T
         
         if xlim != "nolimits":
-            rows = rows.T
             rows = rows[int(xmin):int(xmax)]
-            rows = rows.T
             
-        z = rows.T.plot.area(xlabel="turn", ylabel=filename)
+        z = rows.plot.area(xlabel="turn", ylabel=filename)
         
         if ylim != "nolimits":
             z.set_ylim(int(ymin), int(ymax))
@@ -71,6 +69,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         plt.show()
             
     if plottype == 'simple':
+        
         if playerlist != "all":
             data = data[player_list]
         
