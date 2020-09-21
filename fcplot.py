@@ -10,7 +10,7 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
     
-def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname):
+def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn):
     
     data = read_file(filename)
 
@@ -20,6 +20,8 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     #fill Nan as 0
     data.fillna(0, inplace=True)
     
+    if pie_turn != -1:
+        plottype = "pie"
 
     if playerlist != "all":
         player_list = playerlist.split(':')
@@ -82,6 +84,12 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
+    if plottype == 'pie':
+        rows = dt
+        rows = rows[pie_turn]
+        z = rows.plot.pie(ylabel=("turn " + str(pie_turn)))
+        plt.show()
+            
 if __name__ == '__main__':
     parser = ArgumentParser(description='Plot csv files')
     parser.add_argument('filename',nargs='?', default='', help='csv file to read')
@@ -99,7 +107,9 @@ if __name__ == '__main__':
                           help='name of Y axis (default: filename)')
     parser.add_argument('-logx', help='sets logarythmic X axis', action="store_true")
     parser.add_argument('-logy', help='sets logarythmic Y axis', action="store_true")
+    parser.add_argument('-pie', type=int, metavar='turn number',nargs='?', default="-1",
+                          help='Pie chart, it negates other options, takes only turn number')
     args = parser.parse_args()
-    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname)
+    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname, args.pie)
     
     
