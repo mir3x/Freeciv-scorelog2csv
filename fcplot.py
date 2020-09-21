@@ -49,7 +49,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         filename = yname
      
     if plottype == 'percentage':
-        #rows = dt.reindex(["louis94","aaa","bbb","ccc"])
         if playerlist != "all":
             dt = limit_to_players(dt, player_list)
             
@@ -57,14 +56,18 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
             dt = dt.drop(exclude_list)
         rows = dt
         rows = (100. * rows / rows.sum()).round(2)
+        
+        
+        if xlim != "nolimits":
+            rows = rows.T
+            rows = rows[int(xmin):int(xmax)]
+            rows = rows.T
+            
         z = rows.T.plot.area(xlabel="turn", ylabel=filename)
         
         if ylim != "nolimits":
-            z.set_ylim(ymin, ymax)
+            z.set_ylim(int(ymin), int(ymax))
             
-        if xlim != "nolimits":
-            z.set_xlim(xmin, xmax)
-        #z.set_ylim(-100, 100)
         plt.legend(loc='upper left')
         plt.show()
             
@@ -75,13 +78,13 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, yname):
         if excludelist != "none":
             for i in exclude_list:
                 data = data.loc[:, ~data.columns.str.contains(i)]
-
+#kind='bar'
+        if xlim != "nolimits":
+            data = data[int(xmin):int(xmax)]
         z = data.plot(xlabel="turn", ylabel=filename)
         #z = data.plot()
         if ylim != "nolimits":
-            z.set_ylim(ymin, ymax)
-        if xlim != "nolimits":
-            z.set_xlim(xmin, xmax)
+            z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
     
