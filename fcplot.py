@@ -29,6 +29,28 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     data.fillna(0, inplace=True)
     
     
+    if xlim != "nolimits":
+        x = xlim.split(':')
+        xmin = x[0]
+        xmax = x[1]
+        print(f"X axis min set to {xmin}, max to {xmax}")
+    
+    if playerlist != "all":
+        player_list = playerlist.split(':')
+        print("Included players:", player_list)
+        
+    if excludelist != "none":
+        exclude_list = excludelist.split(':')
+        print("Excommunicated players:", exclude_list)
+    
+    if playerlist != "all":
+        data = data[player_list]
+    if excludelist != "none":
+        for i in exclude_list:
+            data = data.loc[:, ~data.columns.str.contains(i)]
+    if xlim != "nolimits":
+        data = data[int(xmin):int(xmax)]
+    
     if topx > 0:
         stats = data.describe()
             
@@ -63,36 +85,16 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     if pie_turn != -1:
         plottype = "pie"
 
-    if playerlist != "all":
-        player_list = playerlist.split(':')
-        print("Included players:", player_list)
-        
-    if excludelist != "none":
-        exclude_list = excludelist.split(':')
-        print("Excommunicated players:", exclude_list)
     
     if ylim != "nolimits":
         y = ylim.split(':')
         ymin = y[0]
         ymax = y[1]
         print(f"Y axis min set to {ymin}, max to {ymax}")
-        
-    if xlim != "nolimits":
-        x = xlim.split(':')
-        xmin = x[0]
-        xmax = x[1]
-        print(f"X axis min set to {xmin}, max to {xmax}")
-        
+                
     if yname != "":
         filename = yname
         
-    if playerlist != "all":
-        data = data[player_list]
-    if excludelist != "none":
-        for i in exclude_list:
-            data = data.loc[:, ~data.columns.str.contains(i)]
-    if xlim != "nolimits":
-        data = data[int(xmin):int(xmax)]
      
     #array kicked
     dt = data.T
