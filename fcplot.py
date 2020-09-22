@@ -31,7 +31,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     
     if topx > 0:
         stats = data.describe()
-        print(stats)
             
         #convert mean to dict
         cols = stats.loc['mean'].to_dict()
@@ -55,8 +54,11 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
             if i >= topx:
                 break
         
+        
         print("Top players:", top_list)
         data = data[top_list]
+        stats = data.describe()
+        print(stats)
                 
     if pie_turn != -1:
         plottype = "pie"
