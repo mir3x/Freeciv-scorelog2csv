@@ -1,3 +1,5 @@
+#python3.6+
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +14,7 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
     
-def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn):
+def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn, topx):
     
     data = read_file(filename)
 
@@ -26,8 +28,36 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     #fill remaining Nan as 0
     data.fillna(0, inplace=True)
     
-    print(data.describe())
+    
+    if topx > 0:
+        stats = data.describe()
+        print(stats)
+            
+        #convert mean to dict
+        cols = stats.loc['mean'].to_dict()
         
+        #sort columns by value
+        cols = {k: v for k, v in sorted(cols.items(), key=lambda item: item[1])}
+        
+        col_list = []
+        #make column list
+        for k in cols.keys():
+            col_list.append(k)
+        
+        #revert list (was sorted from min)
+        col_list = col_list[::-1]
+        
+        top_list = []
+        i = 0
+        for item in col_list:
+            i += 1
+            top_list.append(item)
+            if i >= topx:
+                break
+        
+        print("Top players:", top_list)
+        data = data[top_list]
+                
     if pie_turn != -1:
         plottype = "pie"
 
@@ -117,7 +147,9 @@ if __name__ == '__main__':
     parser.add_argument('-logy', help='sets logarythmic Y axis', action="store_true")
     parser.add_argument('-pie', type=int, metavar='turn number',nargs='?', default="-1",
                           help='Pie chart, it negates other options, takes only turn number')
+    parser.add_argument('-top', type=int, metavar='N - number of top players',nargs='?', default="-1",
+                          help='Shows plots for best N given players based on pandas mean() value')
     args = parser.parse_args()
-    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname, args.pie)
+    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname, args.pie, args.top)
     
     
