@@ -19,14 +19,14 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     #remove unnamed
     data = data.loc[:, ~data.columns.str.contains('^Unnamed')]
     
-    print(data.head())
-    
     #fill dead players score as last one
     data = data.replace(r'\s+', np.nan, regex=True)
     data = data.fillna(method='ffill')
     
     #fill remaining Nan as 0
-    #data.fillna(0, inplace=True)
+    data.fillna(0, inplace=True)
+    
+    print(data.describe())
         
     if pie_turn != -1:
         plottype = "pie"
