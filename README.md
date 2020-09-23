@@ -27,7 +27,7 @@ Default simple plot with with limited y axis to 2000
 Shows production and marks government changes with stars
 ![Screenshot](https://user-images.githubusercontent.com/43116166/94064107-71ff8580-fde9-11ea-9dc4-60b95ec53a55.png)
 
-*python.exe' fcplot.py .\x\bnp.csv -type percentage*
+*python.exe fcplot.py .\x\bnp.csv -type percentage*
 
 Shows economy as percentage per turn
 ![Screenshot](https://user-images.githubusercontent.com/43116166/94064108-72981c00-fde9-11ea-886b-066d559f47da.png)
@@ -37,7 +37,7 @@ Shows economy as percentage per turn
 Shows unit kill heatmap between turns 50-90, uses chg_inc switch to change how unitskilled.csv is organized
 ![Screenshot](https://user-images.githubusercontent.com/43116166/94064103-70ce5880-fde9-11ea-86ca-9c4f869824f0.png)
 
-*python.exe' fcplot.py .\x\score.csv -top 5*
+*python.exe fcplot.py .\x\score.csv -top 5*
 
 Shows score for best 5 players
 
