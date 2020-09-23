@@ -49,7 +49,8 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
     
-def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn, topx, scatter, starchange):
+def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn,
+          topx, scatter, starchange, chg_inc):
     
     data = read_file(filename)
     colormap = "Blues"
@@ -177,6 +178,25 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         plt.show()
         exit(0)
         
+        
+    if chg_inc:
+        colormap = 'Reds'
+        data_copy = data
+        xlen = len(data) # rows 
+        ylen = len(data.columns) #cols
+
+        print(xlen)
+        print(ylen)
+        for y in range(ylen):
+            old = 0
+            for x in range(xlen):
+                z = data.iloc[x,y]
+                if z >= old:
+                    data_copy.iloc[x, y] = z - old
+                old = z
+        
+        data = data_copy
+        
     if scatter != "none":
         data3d = read_file(scatter)
         data3d = data3d.loc[:, ~data3d.columns.str.contains('^Unnamed')]
@@ -282,8 +302,10 @@ if __name__ == '__main__':
                           help='scatter plot, filename of another csv (usually gov.csv)')
     parser.add_argument('-starchange', type=str, metavar='filename',nargs='?', default="none",
                           help='shows star when data on given csv changes(usually gov.csv)')
+    parser.add_argument('-chg_inc', help='changes incrementing stats to stat per turn. eg from unit built/killed',
+                         action="store_true")
     args = parser.parse_args()
     main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx,
-         args.logy, args.yname, args.pie, args.top, args.scatter, args.starchange)
+         args.logy, args.yname, args.pie, args.top, args.scatter, args.starchange, args.chg_inc)
     
     
