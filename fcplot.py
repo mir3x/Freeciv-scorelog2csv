@@ -52,7 +52,7 @@ def limit_to_players(csv, plist):
 def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn, topx, scatter, starchange):
     
     data = read_file(filename)
-    
+    colormap = "Blues"
     
     #remove unnamed
     data = data.loc[:, ~data.columns.str.contains('^Unnamed')]
@@ -189,8 +189,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         
         xlen = len(data) # rows
         ylen = len(data.columns) #cols
-        print(xlen)
-        print(ylen)
+
         for y in range(ylen):
             for x in range(xlen):
                 z = data3d.iloc[x,y]
@@ -224,6 +223,21 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
+    if plottype == 'heatmap':
+        
+        dx = data.T
+        plt.imshow(data.T, cmap =colormap)
+        plt.colorbar()
+        plt.xticks(range(len(data)), data.index) 
+        plt.yticks(range(len(data.columns)), data.columns)
+        plt.show()
+        
+        # split and add labels ?
+        # data1 = data[0:75] 
+        # data2 = data[75:len(data)]
+        # fig, axes = plt.subplots(nrows=2, ncols=1)
+        # im3 = axes[0].imshow(data1.T)
+        # im4 = axes[1].imshow(data2.T)
 
     if plottype == 'hellokitty':
         
