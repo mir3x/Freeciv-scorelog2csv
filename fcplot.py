@@ -7,6 +7,41 @@ import re
 
 from argparse import ArgumentParser
 
+#color dict
+cold = {
+    0 : 'w', 
+    1 : 'r',
+    2 : 'g',
+    3 : 'k',
+    4 : 'c',
+	5 : 'm',
+	6 : 'y',
+    7 :	'#0088ff',
+    8 : 'b',
+    9 : '#ff8800',
+    10: '#B22222',
+    11: '#CD5C5C', 
+    12: '#FF6347',
+    13: '#FFE4B5',
+    14: '#BDB76B',
+    15: '#228B22',
+    16: '#006400',
+    17: '#808000',
+    18: '#7FFFD4',
+    19: '#008B8B',
+    20: '#4682B4',
+    21: '#00008B',
+    22: '#DDA0DD',
+    23: '#8B008B',
+    24: '#4B0082',
+    25: '#F5F5DC',
+    26: '#708090',
+    27: '#2F4F4F',
+    28: '#DEB887',
+    29: '#800000',
+    30: '#A0522D',
+    31: '#FFE4C4'
+}
 
 def read_file(filename):
     return pd.read_csv(filename, index_col='turn')
@@ -14,10 +49,11 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
     
-def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn, topx):
+def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn, topx, scatter, starchange):
     
     data = read_file(filename)
-
+    
+    
     #remove unnamed
     data = data.loc[:, ~data.columns.str.contains('^Unnamed')]
     
@@ -98,6 +134,74 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
      
     #array kicked
     dt = data.T
+
+    if starchange != "none":
+        data3d = read_file(starchange)
+        data.fillna(0, inplace=True)
+        data3d.fillna(0, inplace=True)
+        
+        if xlim != "nolimits":
+            data3d = data3d[int(xmin):int(xmax)]
+        
+        dd = data3d.to_numpy()
+        ddcopy = dd
+        
+        
+        xlen = len(dd) # 144
+        ylen = len(dd[0]) #19
+        for y in range(ylen):
+            old = 0
+            for x in range(xlen):
+                val = ddcopy[x,y]
+                if (val == old):
+                    dd[x,y] = 0
+                # put it at end to show at end of graph
+                if (val != 0):
+                    dd[xlen - 1, y] = val 
+                old = val
+        
+            
+        z = data.plot(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
+        if ylim != "nolimits":
+            z.set_ylim(int(ymin), int(ymax))
+        
+        xlen = len(dd) # 144
+        ylen = len(dd[0]) #19
+        for y in range(ylen):
+            for x in range(xlen):
+                if dd[x,y] != 0:
+                    z = data.iloc[x,y]
+                    col_nr = dd[x,y] % 31  # 31 is number of all colors
+                    plt.plot(x, z, '*', color=cold[col_nr])
+        
+        plt.show()
+        exit(0)
+        
+    if scatter != "none":
+        data3d = read_file(scatter)
+        data3d = data3d.loc[:, ~data3d.columns.str.contains('^Unnamed')]
+       
+        if xlim != "nolimits":
+            data3d = data3d[int(xmin):int(xmax)]
+
+        print(data.head())
+        print(data3d.head())
+        
+        xlen = len(data) # rows
+        ylen = len(data.columns) #cols
+        print(xlen)
+        print(ylen)
+        for y in range(ylen):
+            for x in range(xlen):
+                z = data3d.iloc[x,y]
+                xz = data.iloc[x,y]
+                col_nr = z % 31
+                plt.plot(xz, z, '*', color=cold[col_nr])
+        
+        #plt.scatter(data, data3d)
+        plt.gca().set(xlabel=filename, ylabel=scatter)
+        plt.show()
+        exit(0)
     
     if plottype == 'percentage':
 
@@ -153,7 +257,12 @@ if __name__ == '__main__':
                           help='Pie chart, it negates other options, takes only turn number')
     parser.add_argument('-top', type=int, metavar='N - number of top players',nargs='?', default="-1",
                           help='Shows plots for best N given players based on pandas mean() value')
+    parser.add_argument('-scatter', type=str, metavar='filename',nargs='?', default="none",
+                          help='scatter plot, filename of another csv (usually gov.csv)')
+    parser.add_argument('-starchange', type=str, metavar='filename',nargs='?', default="none",
+                          help='shows star when data on given csv changes(usually gov.csv)')
     args = parser.parse_args()
-    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx, args.logy, args.yname, args.pie, args.top)
+    main(args.filename, args.type, args.playerlist, args.excludelist, args.xlim, args.ylim, args.logx,
+         args.logy, args.yname, args.pie, args.top, args.scatter, args.starchange)
     
     
