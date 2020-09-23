@@ -224,6 +224,13 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
             z.set_ylim(int(ymin), int(ymax))
         plt.show()
 
+
+    if plottype == 'hellokitty':
+        
+        plt.text(0.1,0.5, "Hello", fontsize=100)
+        plt.text(0.14,0.1, "Kitty", fontsize=100)
+        plt.show()
+
     if plottype == 'stackedbar':
         z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename, logx=log_x, logy = log_y, width = 1.0)
         if ylim != "nolimits":
