@@ -20,126 +20,160 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
+import errno
+import sys
 from argparse import ArgumentParser
 
 
-def run_forest(filename, outdir):
-    last_turn = 0
-    line_number = 0
+def load_scorelog(filename):
 
-    FCid = ""
-    FCtags = {}
-    FCturns = {}
-    FCplayers = {}
-    FCdata = {}
-    taglimit  = []
+    firstTurn = 0
+    lastTurn = 0
+    lineNumber = 0
+    fcId = ""
+    fcTags = {}
+    fcTurns = {}
+    fcPlayers = {}
+    fcData = {}
+    tagLimit = []
 
-    firstturn = 0
+    try:
+        with open(filename, "r") as reader:
+            all = reader.readlines()
 
-    with open(filename, "r") as reader:
-        all = reader.readlines()
-        
-        while True:
-            
-            if (len(all)) == 0:
-                break
-            line = all.pop(0)
-            line_number += 1
-            if line[0] in ['\n', "#"]:
-                continue
+            while True:
 
-            last_turn += 1
-            line = line.strip()
-            command, args = str.split(line, maxsplit = 1)
+                if (len(all)) == 0:
+                    break
+                line = all.pop(0)
+                lineNumber += 1
+                if line[0] in ['\n', "#"]:
+                    continue
 
-            if command == "id":
-                FCid = args
-                
-            elif command == "tag":
-                tid, descr = str.split(args, maxsplit = 1)
-                tid = int(tid)
-                FCtags[tid] = descr
+                lastTurn += 1
+                line = line.strip()
+                command, args = str.split(line, maxsplit=1)
 
-            elif command == "turn":
-                turn, num, descr = str.split(args, maxsplit = 2)
-                turn = int(turn)
-                num = int(num)
-                FCturns[turn] = (num, descr)
+                if command == "id":
+                    fcId = args
 
-            elif command == "addplayer":
-                turn, pid, name = str.split(args, maxsplit = 2)
-                turn = int(turn)
-                pid = int(pid)
-                if pid in FCplayers:
-                    FCplayers[pid][1].append((turn,None))
-                else:
-                    FCplayers[pid] = (name, [(turn, None)])
-                print(name);
+                elif command == "tag":
+                    tid, descr = str.split(args, maxsplit=1)
+                    tid = int(tid)
+                    fcTags[tid] = descr
 
-            elif command == "delplayer":
-                turn, pid = str.split(args, maxsplit = 1)
-                turn = int(turn)
-                pid = int(pid)
-                if pid in FCplayers:
-                    begturn = FCplayers[pid][1][-1][0]
-                    FCplayers[pid][1][-1] = (begturn, turn)
-                else:
-                    print ("Can't delete nonexisting player.")
+                elif command == "turn":
+                    turn, num, descr = str.split(args, maxsplit=2)
+                    turn = int(turn)
+                    num = int(num)
+                    fcTurns[turn] = (num, descr)
 
-            elif command == "data":
-                turn, tid, pid, value = str.split(args, maxsplit = 3)
-                turn = int(turn)
-                tid = int(tid)
-                pid = int(pid)
-                value = float(value)
+                elif command == "addplayer":
+                    turn, pid, name = str.split(args, maxsplit=2)
+                    turn = int(turn)
+                    pid = int(pid)
+                    if pid in fcPlayers:
+                        fcPlayers[pid][1].append((turn, None))
+                    else:
+                        fcPlayers[pid] = (name, [(turn, None)])
+                    print("Added player", name)
 
-                if tid not in FCdata:
-                    FCdata[tid] = {}
-                if turn not in FCdata[tid]:
-                    FCdata[tid][turn] = {}
-                FCdata[tid][turn][pid] = value
-    
-    for tid in FCtags.keys():
+                elif command == "delplayer":
+                    turn, pid = str.split(args, maxsplit=1)
+                    turn = int(turn)
+                    pid = int(pid)
+                    if pid in fcPlayers:
+                        begTurn = fcPlayers[pid][1][-1][0]
+                        fcPlayers[pid][1][-1] = (begTurn, turn)
+                    else:
+                        print("Can't delete nonexisting player.")
 
-        if not (len(taglimit) == 0 or FCtags[tid] in taglimit):
+                elif command == "data":
+                    turn, tid, pid, value = str.split(args, maxsplit=3)
+                    turn = int(turn)
+                    tid = int(tid)
+                    pid = int(pid)
+                    value = float(value)
+
+                    if tid not in fcData:
+                        fcData[tid] = {}
+                    if turn not in fcData[tid]:
+                        fcData[tid][turn] = {}
+                    fcData[tid][turn][pid] = value
+        reader.close()
+
+    except:
+        err = sys.exc_info()[0]
+        print(f"Error ***{err}*** when reading file {filename}. Exiting")
+        exit(1)
+
+    return fcTags, fcData, fcPlayers, fcId, tagLimit, firstTurn, lastTurn
+
+
+def make_directory(fcId):
+    try:
+        if not os.path.exists(fcId):
+            os.makedirs(fcId)
+    except OSError as e:
+        err = sys.exc_info()[0]
+        print(f"Error when creating directory: ***{err}***. Exiting")
+        exit(1)
+
+
+def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
+
+    for tid in fcTags.keys():
+
+        if not (len(taglimit) == 0 or fcTags[tid] in taglimit):
             continue
 
-        filename = FCtags[tid] + ".csv"
-        
-        if outdir != "":
-            FCid = outdir
-        
-        if not os.path.exists(FCid):
-            os.makedirs(FCid)
-            
-        with open(FCid +'/' + filename, 'w') as out:
+        filename = fcTags[tid] + ".csv"
+        try:
+            with open(fcId + '/' + filename, 'w') as out:
 
-            # Header
-            out.write("\"turn\",")
-            for pid in FCplayers.keys():
-                out.write("\"%s\"," % FCplayers[pid][0])
-            out.write("\n")
+                # Header
+                out.write("\"turn\",")
+                for pid in fcPlayers.keys():
+                    out.write("\"%s\"," % fcPlayers[pid][0])
+                out.write("\n")
 
-            # Data
-            for turn in range(firstturn, last_turn):
-                if turn in FCdata[tid]:
-                    out.write("%d," % turn)
-                    for pid in FCplayers.keys():
-                        if pid in FCdata[tid][turn]:
-                            out.write("%d," % FCdata[tid][turn][pid])
-                        else:
-                            out.write(",")
-                    out.write("\n")
+                # Data
+                for turn in range(firstTurn, lastTurn):
+                    if turn in fcData[tid]:
+                        out.write("%d," % turn)
+                        for pid in fcPlayers.keys():
+                            if pid in fcData[tid][turn]:
+                                out.write("%d," % fcData[tid][turn][pid])
+                            else:
+                                out.write(",")
+                        out.write("\n")
+                print(f"{filename } written")
+        except:
+            err = sys.exc_info()[0]
+            print(f"Error ***{err}*** when writing file {filename}")
 
+        finally:
             out.close()
-            print(f"{filename } done")
+
+
+def main(filename, outdir):
+
+    block = []
+    [fcTags, fcData, fcPlayers, fcId, tagLimit,
+        firstTurn, lastTurn] = load_scorelog(filename)
+
+    if outdir != "":
+        fcId = outdir
+
+    make_directory(fcId)
+    write_csv(fcTags, fcData, fcPlayers, fcId, tagLimit, firstTurn, lastTurn)
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Freeciv Scorelog 2 csv')
-    parser.add_argument('filename',nargs='?', default='freeciv-score.log',
-                         help='freeciv scorelog filename (default: %(default)s)')
-    parser.add_argument('-dir', type=str, metavar='output_direcotry',nargs='?', default="",
-                         help='Output directory for csv (default: id given in freeciv-score.log')
+    parser.add_argument('filename', nargs='?', default='freeciv-score.log',
+                        help='freeciv scorelog filename (default: %(default)s)')
+    parser.add_argument('-dir', type=str, metavar='output_direcotry', nargs='?', default="",
+                        help='Output directory for csv (default: id given in freeciv-score.log')
     args = parser.parse_args()
-    run_forest(args.filename, args.dir)
+    main(args.filename, args.dir)
