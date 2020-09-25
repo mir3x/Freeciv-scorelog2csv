@@ -14,7 +14,7 @@ Load file score.log and create dir zdir and convert csv there.
 
 
 ## Freeciv fcplot
- Fcplot - plots score from given .csv files. Requires python *pandas* and *matplotlib*
+ Fcplot - plots data from given .csv files. Requires python *pandas* and *matplotlib*
 
 Examples:
 *python.exe fcplot.py .\x\score.csv -ylim 0:2000*
@@ -41,7 +41,7 @@ Shows unit kill heatmap between turns 50-90, uses chg_inc switch to change how u
 
 Shows score for best 5 players
 
-To see more options use *python.exe' fcplot.py --help*
+To see more options use *python.exe fcplot.py --help*
 
 
  **Enjoy!**
