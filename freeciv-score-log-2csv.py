@@ -20,7 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
-import errno
 import sys
 from argparse import ArgumentParser
 
@@ -29,7 +28,6 @@ def load_scorelog(filename):
 
     firstTurn = 0
     lastTurn = 0
-    lineNumber = 0
     fcId = ""
     fcTags = {}
     fcTurns = {}
@@ -43,10 +41,10 @@ def load_scorelog(filename):
 
             while True:
 
-                if (len(all)) == 0:
+                if not all:
                     break
                 line = all.pop(0)
-                lineNumber += 1
+
                 if line[0] in ['\n', "#"]:
                     continue
 
@@ -76,7 +74,7 @@ def load_scorelog(filename):
                         fcPlayers[pid][1].append((turn, None))
                     else:
                         fcPlayers[pid] = (name, [(turn, None)])
-                    print("Added player", name)
+                    print("Added player: ", name)
 
                 elif command == "delplayer":
                     turn, pid = str.split(args, maxsplit=1)
@@ -124,10 +122,11 @@ def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
 
     for tid in fcTags.keys():
 
-        if not (len(taglimit) == 0 or fcTags[tid] in taglimit):
+        if not (not taglimit or fcTags[tid] in taglimit):
             continue
 
         filename = fcTags[tid] + ".csv"
+        out = None
         try:
             with open(fcId + '/' + filename, 'w') as out:
 
