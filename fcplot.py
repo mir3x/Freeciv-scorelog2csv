@@ -69,6 +69,13 @@ def limit_to_players(csv, plist):
 def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn,
           topx, scatter, starchange, chg_inc):
 
+    exclude_list = None
+    xmin = None
+    xmax = None
+    ymin = None
+    ymax = None
+    player_list = None
+
     data = read_file(filename)
     colormap = "Blues"
 
