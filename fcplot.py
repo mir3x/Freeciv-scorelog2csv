@@ -276,12 +276,36 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         plt.yticks(range(len(data.columns)), data.columns)
         plt.show()
 
-        # split and add labels ?
-        # data1 = data[0:75]
-        # data2 = data[75:len(data)]
-        # fig, axes = plt.subplots(nrows=2, ncols=1)
-        # im3 = axes[0].imshow(data1.T)
-        # im4 = axes[1].imshow(data2.T)
+    if plottype == 'heatmap2':
+        dx = data.T
+        l = len(data)
+        dx1 = data[0:int(l/2)]
+        dx2 = data[int(l/2):l]
+
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        whatever = ax1.imshow(dx1.T, cmap = colormap)
+        cbar = fig.colorbar(whatever, ax = ax1)
+        ax1.plot()
+
+        whatever = ax2.imshow(dx2.T, cmap = colormap)
+        cbar = fig.colorbar(whatever, ax = ax2)
+        ax2.plot()
+
+        ax1.set_yticks(range(len(dx2.columns)))
+        ax1.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
+        ax2.set_yticks(range(len(dx2.columns)))
+        ax2.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
+        plt.show()
+
+
+    if plottype == 'heatmap':
+
+        dx = data.T
+        plt.imshow(data.T, cmap =colormap)
+        plt.colorbar()
+        plt.xticks(range(len(data)), data.index)
+        plt.yticks(range(len(data.columns)), data.columns)
+        plt.show()
 
     if plottype == 'hellokitty':
 
@@ -305,7 +329,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Plot csv files')
     parser.add_argument('filename',nargs='?', default='', help='csv file to read')
     parser.add_argument('-type', type=str, metavar='plot_type',nargs='?', default="simple",
-                          help='supported types: simple(default), percentage, stackedbar')
+                          help='supported types: simple(default), percentage, stackedbar, heatmap, heatmap2')
     parser.add_argument('-playerlist', type=str, metavar='list of players',nargs='?', default="all",
                           help='include only given players - seperated by colon, eg aa:bb:cc (default: %(default)s)')
     parser.add_argument('-excludelist', type=str, metavar='list of excluded players',nargs='?', default="none",
