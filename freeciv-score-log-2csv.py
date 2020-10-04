@@ -21,6 +21,7 @@
 
 import os
 import sys
+import traceback
 from argparse import ArgumentParser
 
 class scorelog_reader:
@@ -95,8 +96,7 @@ class scorelog_reader:
                     'turn'       : self._set_turn,
                     'addplayer'  : self._add_player,
                     'delplayer'  : self._del_player,
-                    'data'       : self._set_data,
-                    'Invalid'    : self._invalid }
+                    'data'       : self._set_data }
         try:
             with open(self.filename, "r") as reader:
                 whole_file = reader.readlines()
@@ -113,8 +113,7 @@ class scorelog_reader:
                     line = line.strip()
                     command, args = str.split(line, maxsplit=1)
                     args = args.strip()
-                    #func_dict[command](args)
-                    func_dict.get(command, lambda: 'Invalid')(args)
+                    func_dict.get(command, self._invalid)(args)
                     lastTurn += 1
                     line = line.strip()
 
@@ -122,7 +121,9 @@ class scorelog_reader:
 
         except:
             err = sys.exc_info()[0]
-            print(f"Error ***{err}*** when reading file {self.filename}. Exiting")
+            print(f"\033[91mError ***{err}*** when reading file {self.filename}. Exiting\033[0m")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
             exit(1)
 
         return self.fcTags, self.fcData, self.fcPlayers, self.fcId, self.tagLimit, firstTurn, lastTurn
@@ -167,7 +168,9 @@ def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
                 print(f"{filename } written")
         except:
             err = sys.exc_info()[0]
-            print(f"Error ***{err}*** when writing file {filename}")
+            print(f"\033[91mError ***{err}*** when writing file {filename}\033[0m")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
         finally:
             out.close()
