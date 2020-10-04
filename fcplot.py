@@ -66,14 +66,78 @@ def read_file(filename):
 def limit_to_players(csv, plist):
     return csv.reindex(plist)
 
+def plot_simple(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    z = data.plot(xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y)
+    if ymin and ymax:
+            z.set_ylim(int(ymin), int(ymax))
+    plt.show()
+
+def plot_percentage(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    rows = data.T
+    rows = (100. * data.T / data.T.sum()).round(2)
+    rows = rows.T
+
+    z = rows.plot.area(xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y)
+    if ymin and ymax:
+        z.set_ylim(int(ymin), int(ymax))
+
+    plt.legend(loc='upper left')
+    plt.show()
+
+def plot_stackedbar(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    z = data.plot.bar(stacked=True, xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y, width = 1.0)
+    if ymin and ymax:
+        z.set_ylim(int(ymin), int(ymax))
+    plt.show()
+
+def plot_heatmap(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    dx = data.T
+    plt.imshow(data.T, cmap =colormap)
+    plt.colorbar()
+    plt.xticks(range(len(data)), data.index)
+    plt.yticks(range(len(data.columns)), data.columns)
+    plt.show()
+
+def plot_heatmap2(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    dx = data.T
+    l = len(data)
+    dx1 = data[0:int(l/2)]
+    dx2 = data[int(l/2):l]
+
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    whatever = ax1.imshow(dx1.T, cmap = colormap)
+    cbar = fig.colorbar(whatever, ax = ax1)
+    ax1.plot()
+
+    whatever = ax2.imshow(dx2.T, cmap = colormap)
+    cbar = fig.colorbar(whatever, ax = ax2)
+    ax2.plot()
+
+    ax1.set_yticks(range(len(dx2.columns)))
+    ax1.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
+    ax2.set_yticks(range(len(dx2.columns)))
+    ax2.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
+    plt.show()
+
+def plot_hellokitty(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    plt.text(0.1,0.5, "Hello", fontsize=100)
+    plt.text(0.14,0.1, "Kitty", fontsize=100)
+    plt.show()
+
+def plot_pie(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
+    rows = data.T
+    rows = rows[ymin]
+    z = rows.plot.pie(ylabel=("turn " + str(ymin)))
+    plt.show()
+
 def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn,
           topx, scatter, starchange, chg_inc):
 
     exclude_list = None
     xmin = None
     xmax = None
-    ymin = None
-    ymax = None
+    ymin = 0
+    ymax = 0
     player_list = None
 
     data = read_file(filename)
@@ -137,14 +201,10 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
             if i >= topx:
                 break
 
-
         print("Top players:", top_list)
         data = data[top_list]
         stats = data.describe()
         print(stats)
-
-    if pie_turn != -1:
-        plottype = "pie"
 
 
     if ylim != "nolimits":
@@ -153,9 +213,12 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         ymax = y[1]
         print(f"Y axis min set to {ymin}, max to {ymax}")
 
+    if pie_turn != -1:
+        plottype = "pie"
+        ymin = pie_turn
+
     if yname != "":
         filename = yname
-
 
     #array kicked
     dt = data.T
@@ -170,7 +233,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
         dd = data3d.to_numpy()
         ddcopy = dd
-
 
         xlen = len(dd) # 144
         ylen = len(dd[0]) #19
@@ -201,7 +263,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
         plt.show()
         exit(0)
-
 
     if chg_inc:
         colormap = 'Reds'
@@ -246,90 +307,22 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         plt.show()
         exit(0)
 
-    if plottype == 'percentage':
-
-        rows = dt
-        rows = (100. * rows / rows.sum()).round(2)
-        rows = rows.T
-
-        z = rows.plot.area(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
-
-        if ylim != "nolimits":
-            z.set_ylim(int(ymin), int(ymax))
-
-        plt.legend(loc='upper left')
-        plt.show()
-
-    if plottype == 'simple':
-
-        z = data.plot(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
-        if ylim != "nolimits":
-            z.set_ylim(int(ymin), int(ymax))
-        plt.show()
-
-    if plottype == 'heatmap':
-
-        dx = data.T
-        plt.imshow(data.T, cmap =colormap)
-        plt.colorbar()
-        plt.xticks(range(len(data)), data.index)
-        plt.yticks(range(len(data.columns)), data.columns)
-        plt.show()
-
-    if plottype == 'heatmap2':
-        dx = data.T
-        l = len(data)
-        dx1 = data[0:int(l/2)]
-        dx2 = data[int(l/2):l]
-
-        fig, (ax1, ax2) = plt.subplots(2, 1)
-        whatever = ax1.imshow(dx1.T, cmap = colormap)
-        cbar = fig.colorbar(whatever, ax = ax1)
-        ax1.plot()
-
-        whatever = ax2.imshow(dx2.T, cmap = colormap)
-        cbar = fig.colorbar(whatever, ax = ax2)
-        ax2.plot()
-
-        ax1.set_yticks(range(len(dx2.columns)))
-        ax1.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
-        ax2.set_yticks(range(len(dx2.columns)))
-        ax2.set_yticklabels([dx2.columns[x] for x in range(len(dx2.columns))])
-        plt.show()
-
-
-    if plottype == 'heatmap':
-
-        dx = data.T
-        plt.imshow(data.T, cmap =colormap)
-        plt.colorbar()
-        plt.xticks(range(len(data)), data.index)
-        plt.yticks(range(len(data.columns)), data.columns)
-        plt.show()
-
-    if plottype == 'hellokitty':
-
-        plt.text(0.1,0.5, "Hello", fontsize=100)
-        plt.text(0.14,0.1, "Kitty", fontsize=100)
-        plt.show()
-
-    if plottype == 'stackedbar':
-        z = data.plot.bar(stacked=True, xlabel="turn", ylabel=filename, logx=log_x, logy = log_y, width = 1.0)
-        if ylim != "nolimits":
-            z.set_ylim(int(ymin), int(ymax))
-        plt.show()
-
-    if plottype == 'pie':
-        rows = dt
-        rows = rows[pie_turn]
-        z = rows.plot.pie(ylabel=("turn " + str(pie_turn)))
-        plt.show()
+    func_dict = {
+        'percentage'    : plot_percentage,
+        'simple'        : plot_simple,
+        'heatmap'       : plot_heatmap,
+        'heatmap2'      : plot_heatmap2,
+        'hellokitty'    : plot_hellokitty,
+        'stackedbar'    : plot_stackedbar,
+        'pie'           : plot_pie
+    }
+    func_dict[plottype](data, filename, int(ymin), int(ymax), log_x, log_y, colormap)
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Plot csv files')
     parser.add_argument('filename',nargs='?', default='', help='csv file to read')
     parser.add_argument('-type', type=str, metavar='plot_type',nargs='?', default="simple",
-                          help='supported types: simple(default), percentage, stackedbar, heatmap, heatmap2')
+                          help='supported types: simple(default), percentage, stackedbar, heatmap, heatmap2, scatter')
     parser.add_argument('-playerlist', type=str, metavar='list of players',nargs='?', default="all",
                           help='include only given players - seperated by colon, eg aa:bb:cc (default: %(default)s)')
     parser.add_argument('-excludelist', type=str, metavar='list of excluded players',nargs='?', default="none",
