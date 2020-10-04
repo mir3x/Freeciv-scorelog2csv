@@ -23,90 +23,109 @@ import os
 import sys
 from argparse import ArgumentParser
 
+class scorelog_reader:
+    def __init__(self, file_name):
+        self.filename = file_name
+        self.fcId = ""
+        self.fcTags = {}
+        self.fcTurns = {}
+        self.fcPlayers = {}
+        self.fcData = {}
+        self.tagLimit = []
 
-def load_scorelog(filename):
+    def _set_id(self, args):
+        self.fcId = args.strip()
 
-    firstTurn = 0
-    lastTurn = 0
-    fcId = ""
-    fcTags = {}
-    fcTurns = {}
-    fcPlayers = {}
-    fcData = {}
-    tagLimit = []
+    def _set_tag(self, args):
+        tid, descr = str.split(args, maxsplit=1)
+        tid = int(tid)
+        self.fcTags[tid] = descr
 
-    try:
-        with open(filename, "r") as reader:
-            all = reader.readlines()
+    def _set_turn(self, args):
+        turn, num, descr = str.split(args, maxsplit=2)
+        turn = int(turn)
+        num = int(num)
+        descr = descr.strip()
+        self.fcTurns[turn] = (num, descr)
 
-            while True:
 
-                if not all:
-                    break
-                line = all.pop(0)
+    def _add_player(self, args):
+        turn, pid, name = str.split(args, maxsplit=2)
+        turn = int(turn)
+        pid = int(pid)
+        name = name.strip()
+        if pid in self.fcPlayers:
+            self.fcPlayers[pid][1].append((turn, None))
+        else:
+            self.fcPlayers[pid] = (name, [(turn, None)])
+        print("Added player: ", name,)
 
-                if line[0] in ['\n', "#"]:
-                    continue
+    def _del_player(self, args):
+        turn, pid = str.split(args, maxsplit=1)
+        turn = int(turn)
+        pid = int(pid)
+        if pid in self.fcPlayers:
+            begTurn = self.fcPlayers[pid][1][-1][0]
+            self.fcPlayers[pid][1][-1] = (begTurn, turn)
+        else:
+            print("Can't delete nonexisting player.")
 
-                lastTurn += 1
-                line = line.strip()
-                command, args = str.split(line, maxsplit=1)
+    def _set_data(self, args):
+        turn, tid, pid, value = str.split(args, maxsplit=3)
+        turn = int(turn)
+        tid = int(tid)
+        pid = int(pid)
+        value = float(value)
 
-                if command == "id":
-                    fcId = args
+        if tid not in self.fcData:
+            self.fcData[tid] = {}
+        if turn not in self.fcData[tid]:
+            self.fcData[tid][turn] = {}
+        self.fcData[tid][turn][pid] = value
 
-                elif command == "tag":
-                    tid, descr = str.split(args, maxsplit=1)
-                    tid = int(tid)
-                    fcTags[tid] = descr
+    def _invalid(self, args):
+        pass
 
-                elif command == "turn":
-                    turn, num, descr = str.split(args, maxsplit=2)
-                    turn = int(turn)
-                    num = int(num)
-                    fcTurns[turn] = (num, descr)
+    def load_scorelog(self):
+        firstTurn = 0
+        lastTurn = 0
+        func_dict = {
+                    'id'         : self._set_id,
+                    'tag'        : self._set_tag,
+                    'turn'       : self._set_turn,
+                    'addplayer'  : self._add_player,
+                    'delplayer'  : self._del_player,
+                    'data'       : self._set_data,
+                    'Invalid'    : self._invalid }
+        try:
+            with open(self.filename, "r") as reader:
+                whole_file = reader.readlines()
 
-                elif command == "addplayer":
-                    turn, pid, name = str.split(args, maxsplit=2)
-                    turn = int(turn)
-                    pid = int(pid)
-                    if pid in fcPlayers:
-                        fcPlayers[pid][1].append((turn, None))
-                    else:
-                        fcPlayers[pid] = (name, [(turn, None)])
-                    print("Added player: ", name)
+                while True:
+                    if not whole_file:
+                        break
+                    line = whole_file.pop(0)
 
-                elif command == "delplayer":
-                    turn, pid = str.split(args, maxsplit=1)
-                    turn = int(turn)
-                    pid = int(pid)
-                    if pid in fcPlayers:
-                        begTurn = fcPlayers[pid][1][-1][0]
-                        fcPlayers[pid][1][-1] = (begTurn, turn)
-                    else:
-                        print("Can't delete nonexisting player.")
+                    if line[0] in ['\n', "#"]:
+                        continue
 
-                elif command == "data":
-                    turn, tid, pid, value = str.split(args, maxsplit=3)
-                    turn = int(turn)
-                    tid = int(tid)
-                    pid = int(pid)
-                    value = float(value)
+                    lastTurn += 1
+                    line = line.strip()
+                    command, args = str.split(line, maxsplit=1)
+                    args = args.strip()
+                    #func_dict[command](args)
+                    func_dict.get(command, lambda: 'Invalid')(args)
+                    lastTurn += 1
+                    line = line.strip()
 
-                    if tid not in fcData:
-                        fcData[tid] = {}
-                    if turn not in fcData[tid]:
-                        fcData[tid][turn] = {}
-                    fcData[tid][turn][pid] = value
-        reader.close()
+            reader.close()
 
-    except:
-        err = sys.exc_info()[0]
-        print(f"Error ***{err}*** when reading file {filename}. Exiting")
-        exit(1)
+        except:
+            err = sys.exc_info()[0]
+            print(f"Error ***{err}*** when reading file {self.filename}. Exiting")
+            exit(1)
 
-    return fcTags, fcData, fcPlayers, fcId, tagLimit, firstTurn, lastTurn
-
+        return self.fcTags, self.fcData, self.fcPlayers, self.fcId, self.tagLimit, firstTurn, lastTurn
 
 def make_directory(fcId):
     try:
@@ -116,7 +135,6 @@ def make_directory(fcId):
         err = sys.exc_info()[0]
         print(f"Error when creating directory: ***{err}***. Exiting")
         exit(1)
-
 
 def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
 
@@ -157,13 +175,13 @@ def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
 
 def main(filename, outdir):
 
-    block = []
+    sc = scorelog_reader(filename)
     [fcTags, fcData, fcPlayers, fcId, tagLimit,
-        firstTurn, lastTurn] = load_scorelog(filename)
+        firstTurn, lastTurn] = sc.load_scorelog()
 
     if outdir != "":
         fcId = outdir
-
+    print(fcTags.keys())
     make_directory(fcId)
     write_csv(fcTags, fcData, fcPlayers, fcId, tagLimit, firstTurn, lastTurn)
 
