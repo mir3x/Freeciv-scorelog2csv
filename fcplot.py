@@ -20,6 +20,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from argparse import ArgumentParser
 
@@ -306,6 +307,9 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
     if yname != "":
         filename = yname
+    else:
+        unused , only_file = os.path.split(filename)
+        filename = only_file
 
     if starchange != "none":
         star_change(data, starchange, filename, xmin, xmax, ymin, ymax, log_x, log_y)
