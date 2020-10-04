@@ -20,7 +20,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import re
 
 from argparse import ArgumentParser
 
@@ -68,7 +67,7 @@ def limit_to_players(csv, plist):
 
 def plot_simple(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
     z = data.plot(xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y)
-    if ymin and ymax:
+    if ymax:
             z.set_ylim(int(ymin), int(ymax))
     plt.show()
 
@@ -78,7 +77,7 @@ def plot_percentage(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = Fal
     rows = rows.T
 
     z = rows.plot.area(xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y)
-    if ymin and ymax:
+    if ymax:
         z.set_ylim(int(ymin), int(ymax))
 
     plt.legend(loc='upper left')
@@ -86,7 +85,7 @@ def plot_percentage(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = Fal
 
 def plot_stackedbar(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
     z = data.plot.bar(stacked=True, xlabel="turn", ylabel=ylabel, logx=log_x, logy = log_y, width = 1.0)
-    if ymin and ymax:
+    if ymax:
         z.set_ylim(int(ymin), int(ymax))
     plt.show()
 
@@ -130,6 +129,116 @@ def plot_pie(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, col
     z = rows.plot.pie(ylabel=("turn " + str(ymin)))
     plt.show()
 
+def chginc(data):
+    colormap = 'Reds'
+    data_copy = data
+    xlen = len(data) # rows
+    ylen = len(data.columns) #cols
+
+    for y in range(ylen):
+        old = 0
+        for x in range(xlen):
+            z = data.iloc[x,y]
+            if z >= old:
+                data_copy.iloc[x, y] = z - old
+            old = z
+    data = data_copy
+    return data
+
+def plot_scatter(data, scatter, ylab, xmin = 0, xmax = 0, ymin = 0, ymax = 0):
+    global cold
+    data3d = read_file(scatter)
+    data3d = data3d.loc[:, ~data3d.columns.str.contains('^Unnamed')]
+
+    if xmax:
+        data3d = data3d[int(xmin):int(xmax)]
+
+    xlen = len(data) # rows
+    ylen = len(data.columns) #cols
+
+    for y in range(ylen):
+        for x in range(xlen):
+            z = data3d.iloc[x,y]
+            xz = data.iloc[x,y]
+            col_nr = z % 31
+            plt.plot(xz, z, '*', color=cold.get(col_nr, 'blue'))
+
+    #plt.scatter(data, data3d)
+    plt.gca().set(xlabel=ylab, ylabel=scatter)
+    plt.show()
+    exit(0)
+
+def star_change(data, filename, ylab,  xmin = 0, xmax = 0, ymin = 0, ymax = 0, log_x = False, log_y = False):
+    data3d = read_file(filename)
+    data.fillna(0, inplace=True)
+    data3d.fillna(0, inplace=True)
+
+    if xmax:
+        data3d = data3d[int(xmin):int(xmax)]
+
+    dd = data3d.to_numpy()
+    ddcopy = dd
+
+    xlen = len(dd) # 144
+    ylen = len(dd[0]) #19
+    for y in range(ylen):
+        old = 0
+        for x in range(xlen):
+            val = ddcopy[x,y]
+            if (val == old):
+                dd[x,y] = 0
+            # put it at end to show at end of graph
+            if (val != 0):
+                dd[xlen - 1, y] = val
+            old = val
+
+    z = data.plot(xlabel="turn", ylabel=ylab, logx=log_x, logy = log_y)
+    if ymax:
+        z.set_ylim(int(ymin), int(ymax))
+
+    xlen = len(dd) # 144
+    ylen = len(dd[0]) #19
+    for y in range(ylen):
+        for x in range(xlen):
+            if dd[x,y] != 0:
+                z = data.iloc[x,y]
+                col_nr = dd[x,y] % 31  # 31 is number of all colors
+                plt.plot(x, z, '*', color=cold[col_nr])
+
+    plt.show()
+    exit(0)
+
+def top_players(topx, data):
+    stats = data.describe()
+
+    #convert mean to dict
+    cols = stats.loc['mean'].to_dict()
+
+    #sort columns by value
+    cols = {k: v for k, v in sorted(cols.items(), key=lambda item: item[1])}
+
+    col_list = []
+    #make column list
+    for k in cols.keys():
+        col_list.append(k)
+
+    #revert list (was sorted from min)
+    col_list = col_list[::-1]
+
+    top_list = []
+    i = 0
+    for item in col_list:
+        i += 1
+        top_list.append(item)
+        if i >= topx:
+            break
+
+    print("Top players:", top_list)
+    data = data[top_list]
+    stats = data.describe()
+    print(stats)
+    return data
+
 def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, yname, pie_turn,
           topx, scatter, starchange, chg_inc):
 
@@ -139,6 +248,11 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     ymin = 0
     ymax = 0
     player_list = None
+    sec_data = None
+
+    if not filename:
+        print("\033[1mMissing filename. Check --help\033[0m")  #Bold
+        exit(0)
 
     data = read_file(filename)
     colormap = "Blues"
@@ -152,7 +266,6 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
     #fill remaining Nan as 0
     data.fillna(0, inplace=True)
-
 
     if xlim != "nolimits":
         x = xlim.split(':')
@@ -170,42 +283,16 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
 
     if playerlist != "all":
         data = data[player_list]
+
     if excludelist != "none":
         for i in exclude_list:
             data = data.loc[:, ~data.columns.str.contains(i)]
+
     if xlim != "nolimits":
         data = data[int(xmin):int(xmax)]
 
     if topx > 0:
-        stats = data.describe()
-
-        #convert mean to dict
-        cols = stats.loc['mean'].to_dict()
-
-        #sort columns by value
-        cols = {k: v for k, v in sorted(cols.items(), key=lambda item: item[1])}
-
-        col_list = []
-        #make column list
-        for k in cols.keys():
-            col_list.append(k)
-
-        #revert list (was sorted from min)
-        col_list = col_list[::-1]
-
-        top_list = []
-        i = 0
-        for item in col_list:
-            i += 1
-            top_list.append(item)
-            if i >= topx:
-                break
-
-        print("Top players:", top_list)
-        data = data[top_list]
-        stats = data.describe()
-        print(stats)
-
+        data = top_players(topx, data)
 
     if ylim != "nolimits":
         y = ylim.split(':')
@@ -220,92 +307,14 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
     if yname != "":
         filename = yname
 
-    #array kicked
-    dt = data.T
-
     if starchange != "none":
-        data3d = read_file(starchange)
-        data.fillna(0, inplace=True)
-        data3d.fillna(0, inplace=True)
-
-        if xlim != "nolimits":
-            data3d = data3d[int(xmin):int(xmax)]
-
-        dd = data3d.to_numpy()
-        ddcopy = dd
-
-        xlen = len(dd) # 144
-        ylen = len(dd[0]) #19
-        for y in range(ylen):
-            old = 0
-            for x in range(xlen):
-                val = ddcopy[x,y]
-                if (val == old):
-                    dd[x,y] = 0
-                # put it at end to show at end of graph
-                if (val != 0):
-                    dd[xlen - 1, y] = val
-                old = val
-
-
-        z = data.plot(xlabel="turn", ylabel=filename, logx=log_x, logy = log_y)
-        if ylim != "nolimits":
-            z.set_ylim(int(ymin), int(ymax))
-
-        xlen = len(dd) # 144
-        ylen = len(dd[0]) #19
-        for y in range(ylen):
-            for x in range(xlen):
-                if dd[x,y] != 0:
-                    z = data.iloc[x,y]
-                    col_nr = dd[x,y] % 31  # 31 is number of all colors
-                    plt.plot(x, z, '*', color=cold[col_nr])
-
-        plt.show()
-        exit(0)
+        star_change(data, starchange, filename, xmin, xmax, ymin, ymax, log_x, log_y)
 
     if chg_inc:
-        colormap = 'Reds'
-        data_copy = data
-        xlen = len(data) # rows
-        ylen = len(data.columns) #cols
-
-        print(xlen)
-        print(ylen)
-        for y in range(ylen):
-            old = 0
-            for x in range(xlen):
-                z = data.iloc[x,y]
-                if z >= old:
-                    data_copy.iloc[x, y] = z - old
-                old = z
-
-        data = data_copy
+        data = chginc(data)
 
     if scatter != "none":
-        data3d = read_file(scatter)
-        data3d = data3d.loc[:, ~data3d.columns.str.contains('^Unnamed')]
-
-        if xlim != "nolimits":
-            data3d = data3d[int(xmin):int(xmax)]
-
-        print(data.head())
-        print(data3d.head())
-
-        xlen = len(data) # rows
-        ylen = len(data.columns) #cols
-
-        for y in range(ylen):
-            for x in range(xlen):
-                z = data3d.iloc[x,y]
-                xz = data.iloc[x,y]
-                col_nr = z % 31
-                plt.plot(xz, z, '*', color=cold[col_nr])
-
-        #plt.scatter(data, data3d)
-        plt.gca().set(xlabel=filename, ylabel=scatter)
-        plt.show()
-        exit(0)
+        plot_scatter(data, scatter,filename, xmin, xmax, ymin, ymax)
 
     func_dict = {
         'percentage'    : plot_percentage,
@@ -314,7 +323,7 @@ def main(filename, plottype, playerlist, excludelist, xlim, ylim, log_x, log_y, 
         'heatmap2'      : plot_heatmap2,
         'hellokitty'    : plot_hellokitty,
         'stackedbar'    : plot_stackedbar,
-        'pie'           : plot_pie
+        'pie'           : plot_pie,
     }
     func_dict[plottype](data, filename, int(ymin), int(ymax), log_x, log_y, colormap)
 
