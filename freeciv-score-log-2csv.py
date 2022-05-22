@@ -101,9 +101,7 @@ class scorelog_reader:
             with open(self.filename, "r") as reader:
                 whole_file = reader.readlines()
 
-                while True:
-                    if not whole_file:
-                        break
+                while whole_file:
                     line = whole_file.pop(0)
 
                     if line[0] in ['\n', "#"]:
@@ -141,13 +139,13 @@ def write_csv(fcTags, fcData, fcPlayers, fcId, taglimit, firstTurn, lastTurn):
 
     for tid in fcTags.keys():
 
-        if not (not taglimit or fcTags[tid] in taglimit):
+        if taglimit and fcTags[tid] not in taglimit:
             continue
 
-        filename = fcTags[tid] + ".csv"
+        filename = f"{fcTags[tid]}.csv"
         out = None
         try:
-            with open(fcId + '/' + filename, 'w') as out:
+            with open(f'{fcId}/{filename}', 'w') as out:
 
                 # Header
                 out.write("\"turn\",")
