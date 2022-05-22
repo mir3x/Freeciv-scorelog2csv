@@ -101,8 +101,8 @@ def plot_heatmap(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False,
 def plot_heatmap2(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
     dx = data.T
     l = len(data)
-    dx1 = data[0:int(l/2)]
-    dx2 = data[int(l/2):l]
+    dx1 = data[:l // 2]
+    dx2 = data[l // 2:l]
 
     fig, (ax1, ax2) = plt.subplots(2, 1)
     whatever = ax1.imshow(dx1.T, cmap = colormap)
@@ -127,7 +127,7 @@ def plot_hellokitty(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = Fal
 def plot_pie(data, ylabel, ymin = 0, ymax = 0, log_x = False, log_y = False, colormap = None):
     rows = data.T
     rows = rows[ymin]
-    z = rows.plot.pie(ylabel=("turn " + str(ymin)))
+    z = rows.plot.pie(ylabel=f"turn {str(ymin)}")
     plt.show()
 
 def chginc(data):
@@ -216,13 +216,9 @@ def top_players(topx, data):
     cols = stats.loc['mean'].to_dict()
 
     #sort columns by value
-    cols = {k: v for k, v in sorted(cols.items(), key=lambda item: item[1])}
+    cols = dict(sorted(cols.items(), key=lambda item: item[1]))
 
-    col_list = []
-    #make column list
-    for k in cols.keys():
-        col_list.append(k)
-
+    col_list = list(cols)
     #revert list (was sorted from min)
     col_list = col_list[::-1]
 
